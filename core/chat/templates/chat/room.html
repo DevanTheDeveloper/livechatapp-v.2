@@ -1,0 +1,66 @@
+{% extends 'chat/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container mx-auto bg-dark text-light">
+<h1>Room: {{roomName}}</h1>
+<div id='display'>
+	
+</div>
+		<form id="commentSubmit" class="form text-light">
+
+			<textarea id="chat-text" cols="60" rows="15"></textarea><br>
+			<input id="input" type="text" size="50" onkeypress="key(event)" />
+			<input  id="submit" type="button" value="Send" />
+
+			
+		</form>
+
+
+</div>
+
+
+
+
+
+	{{roomName|json_script:"roomName"}}
+	{{request.user.username|json_script:"userName"}}
+	<script>
+
+		function key(e){
+			e.preventDefault()
+
+		}
+		document.querySelector('#submit').onclick = function (e) {
+
+			const messageInputDom = document.querySelector('#input');
+			const message = messageInputDom.value;
+			chatSocket.send(JSON.stringify({
+
+					'message':message,
+					'username':userName,
+					
+			}));		
+			messageInputDom.value = '';
+
+		};
+
+
+		const userName = JSON.parse(document.getElementById('userName').textContent)
+		const roomName = JSON.parse(document.getElementById('roomName').textContent)
+		const chatSocket = new WebSocket (
+			'ws://'+ window.location.host + '/ws/chat/' + roomName + '/'
+
+			);
+
+		chatSocket.onmessage = function(e) {
+			const data = JSON.parse(e.data)
+			console.log(data)
+			document.querySelector('#display').innerHTML = (data.tester)
+			document.querySelector('#chat-text').value += (data.username + ':'+ data.message + '\n')
+
+		}
+
+
+	</script>
+{% endblock %}
